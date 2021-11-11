@@ -1,10 +1,22 @@
-song = null;
-lwx = 0;
-lwy = 0;
-rwx = 0;
-rwy = 0;
-slw = 0;
-srw = 0;
+song1 = "";
+song2 = "";
+
+song1_status = "";
+song2_status = "";
+
+scoreRightWrist = 0;
+scoreLeftWrist = 0;
+
+rightWristX = 0;
+rightWristY = 0;
+
+leftWristX = 0;
+leftWristY = 0;
+
+function preload() {
+    song1 = loadSound("thunder.mp3");
+    song2 = loadSound("believer.mp3");
+}
 
 function setup() {
     canvas = createCanvas(600, 500);
@@ -17,77 +29,63 @@ function setup() {
     poseNet.on('pose', gotPoses);
 }
 
-function preload() {
-    song = loadSound("music.mp3");
+function modelLoaded() {
+    console.log('PoseNet Is Initialized');
+}
+
+function gotPoses(results) {
+    if (results.length > 0) {
+        console.log(results);
+        scoreRightWrist = results[0].pose.keypoints[10].score;
+        scoreLeftWrist = results[0].pose.keypoints[9].score;
+        console.log("scoreRightWrist = " + scoreRightWrist + "scoreLeftWrist = " + scoreLeftWrist);
+
+        rightWristX = results[0].pose.rightWrist.x;
+        rightWristY = results[0].pose.rightWrist.y;
+        console.log("rightWristX = " + rightWristX + " rightWristY = " + rightWristY);
+
+        leftWristX = results[0].pose.leftWrist.x;
+        leftWristY = results[0].pose.leftWrist.y;
+        console.log("leftWristX = " + leftWristX + " leftWristY = " + leftWristY);
+
+    }
 }
 
 function draw() {
     image(video, 0, 0, 600, 500);
 
+    song1_status = song1.isPlaying();
+    song2_status = song2.isPlaying();
+
     fill("#FF0000");
     stroke("#FF0000");
 
-    if (srw > 0.2) {
-        
-        circle(rwx, rwy, 20);
+    if (scoreRightWrist > 0.2) {
+        circle(rightWristX, rightWristY, 20);
 
-        if (rwy > 0 && rwy <= 100) {
-            document.getElementById("speed").innerHTML = "speed = 0.5x";
-            song.rate(0.5);
-        } else if (rwy > 100 && rwy <= 200) {
-            document.getElementById("speed").innerHTML = "speed = 1x";
-            song.rate(1);
-        } else if (rwy > 200 && rwy <= 300) {
-            document.getElementById("speed").innerHTML = "speed = 1.5x";
-            song.rate(1.5);
-        } else if (rwy > 300 && rwy <= 400) {
-            document.getElementById("speed").innerHTML = "speed = 2x";
-            song.rate(2);
-        } else if (rwy > 400 && rwy <= 500) {
-            document.getElementById("speed").innerHTML = "speed = 2.5x";
-            song.rate(2.5);
+        song2.stop();
+
+        if (song1_status == false) {
+            song1.play();
+            document.getElementById("song").innerHTML = "Playing - Thunder";
         }
     }
 
+    if (scoreLeftWrist > 0.2) {
+        circle(leftWristX, leftWristY, 20);
 
-    if (slw > 0.2) {
-        circle(lwx, lwy, 20);
-        InNumberlwy = Number(lwy);
-        removeDecimals = floor(InNumberlwy);
-        volume = removeDecimals / 500;
-        document.getElementById("volume").innerHTML = "Volume = " + volume;
-        song.setVolume(volume);
+        song1.stop();
+
+        if (song2_status == false) {
+            song2.play();
+            document.getElementById("song").innerHTML = "Playing - Believer";
+        }
     }
+
 }
 
 function play() {
     song.play();
     song.setVolume(1);
     song.rate(1);
-}
-
-function modelLoaded() {
-    console.log("Posenet initialized")
-}
-
-function gotPoses(results) {
-    if (results.length > 0) {
-        console.log(results);
-
-        slw = results[0].pose.keypoints[9].score;
-        srw = results[0].pose.keypoints[10].score;
-
-        console.log("score left wrist = " + slw + ", score right wrist = " + srw);
-
-        //left wrist
-        lwx = results[0].pose.leftWrist.x;
-        lwy = results[0].pose.leftWrist.y;
-        console.log("lwx = " + lwx + " lwy = " + lwy + ".");
-
-        //right wrist
-        rwx = results[0].pose.rightWrist.x;
-        rwy = results[0].pose.rightWrist.y;
-        console.log("rwx = " + rwx + " rwy = " + rwy + ".");
-    }
-
 }
